@@ -110,6 +110,12 @@ function api_funnels_lead_add($row, $options = array()) {
     $result = db_add(TABLE_FUNNEL_LEADS, $row, "*");
 
     if ($result["ok"]) {
+
+        $resultCheckFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$row['funnel_forms_id']);
+        if ($resultCheckFunnelForms['ok']) {
+            $result["url"] = $resultCheckFunnelForms['data']['response_page_link'];
+        }
+
         $result["msg"] = _t("msg.funnels.funnel_leads_saved");
     }
 
@@ -208,7 +214,7 @@ function sendAmo($data = false) {
         $result = array(
             "ok" => true,
             "data" => $result_data,
-            "msg" => $responce_l,
+            "msg" => "UPD",
         );
 
     }
@@ -230,7 +236,8 @@ function api_funnels_crm_lead_send_all() {
 
     $resultQuery = db_get_list(
         TABLE_FUNNEL_LEADS, 
-        "`status` = 0", 
+        "`published` = 1", 
+        "`status` = 0",
         "`date` desc", 
         "10", 
         ""

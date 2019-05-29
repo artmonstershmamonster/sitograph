@@ -32,7 +32,7 @@ if (!empty($_REQUEST["send_to_crm"])) {
 
             $rowUpd['id'] = $lead_data['id'];
             $rowUpd['status'] = 1;
-            $rowUpd['status_info'] = $result["msg"] ? $result["msg"] : 'oO';
+            $rowUpd['status_info'] = $result["msg"] ? $result["msg"] : 'CREAT';
             
             $resultUpdateLead = db_update_row(TABLE_FUNNEL_LEADS, $rowUpd);
 
