@@ -15,12 +15,12 @@ if (!empty($_REQUEST["send_to_crm"])) {
         
         $lead_data = $resultCheck['data'];
 
-        var_dump($lead_data);
+        //var_dump($lead_data);
 
         $result = api_funnels_crm_lead_send($lead_data);
-        echo "<pre>";
-        var_dump($result);
-echo "</pre>";
+        //echo "<pre>";
+        //var_dump($result);
+        //echo "</pre>";
         
 
         if ($result['ok'] && !empty($result["data"])) {
@@ -44,8 +44,8 @@ echo "</pre>";
                 $resultUpdateUser = db_update_row(TABLE_USERS, $rowUpdUser);
 
             }
-            echo "<pre>";
-            var_dump($resultUpdateUser);
+            //echo "<pre>";
+            //var_dump($resultUpdateUser);
 
 
         } else {
@@ -55,7 +55,7 @@ echo "</pre>";
             );
 
             db_update_row(TABLE_FUNNEL_LEADS, $rowUpd);
-            var_dump($lead_data);
+            //var_dump($lead_data);
             msv_message_error($result["msg"]);
         }
         
