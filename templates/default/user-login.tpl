@@ -1,32 +1,28 @@
 {include file="$themePath/widget/header.tpl"}
 
-<div class="container top-menu">
+<div class="container top-menu" hidden>
 	<div class="row">
 		{include file="$themePath/widget/menu-top.tpl"}
 	</div>
 </div>
-
-{include file="$themePath/widget/navigation.tpl"}
+<section>
 
 <div class="container">
-	<div class="row content-block content-offset">
+
+	<div class="row align-items-center justify-content-center" style="height: 100vh">
 	
-    <div class="col-md-6 col-md-offset-3">
-    	{if $document.name}
-	    <h1>{$document.name}</h1>
-	    {/if}
-	    
-    	{if $document}
-    		{$document.text}<br />
-    	{/if}
-    	
-    	{include file="$themePath/widget/messages.tpl"}
-    	
-        {include file="$themePath/user/login.tpl"}
-    </div>
-    
+        <div class="col-md-4 text-center">
+        	{include file="$themePath/widget/messages.tpl"}
+        	
+            {include file="$themePath/user/login.tpl"}
+        </div>
+        <div class="col-md-12 text-center">
+            {$theme_copyright_text}
+            
+        </div>
 	</div>
 </div>
 
+</section>
 
 {include file="$themePath/widget/footer.tpl"}

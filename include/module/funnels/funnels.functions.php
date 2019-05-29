@@ -72,12 +72,10 @@ function api_funnels_lead_add($row, $options = array()) {
         $row["crm_member_id"] = $userResult["crm_id"];
     }
 
-
-
     $resultCheck = db_get(
         TABLE_FUNNEL_LEADS,
         " `member_email` = '".db_escape($row["member_email"]).
-        "' AND  `funnel_forms_id` = ".$row["funnel_forms_id"]
+        "' AND  `funnel_forms_id` = '".$row["funnel_forms_id"]."'"
     );
 
     if ($resultCheck["ok"] && !empty($resultCheck["data"])) {
@@ -85,7 +83,23 @@ function api_funnels_lead_add($row, $options = array()) {
         return $result;
     }
 
-    
+    $resultCheckLeads = db_get(
+        TABLE_FUNNEL_LEADS,
+        " `member_email` = '".db_escape($row["member_email"]).
+        "' AND  `funnels_id` = '".$row["funnels_id"]."' AND  `published` = '1'"
+    );
+
+    if ($resultCheckLeads["ok"] && !empty($resultCheckLeads["data"]["crm_lead_id"])) {
+        $row["crm_lead_id"] = (int)$resultCheckLeads["data"]["crm_lead_id"];
+    } 
+
+    if (empty($resultCheckLeads["data"]["crm_lead_id"]) && $resultCheckLeads["data"]["status"] == "0" ) {
+        $rowUpd = array(
+                "id" => $resultCheckLeads["data"]['id'],
+                "published" => 0,
+            );
+        $resultUpdateLead = db_update_row(TABLE_FUNNEL_LEADS, $rowUpd);
+    }
 
     if (empty($row["published"])) {
         $row["published"] = 1;
@@ -116,40 +130,41 @@ function sendAmo($data = false) {
     try {
         
         $amo = new \AmoCRM\Client(
-            'vshurinaonline',
-            'vshurina.online@gmail.com',
-            'a1c3640ac7565121ff249457d7f4ef339abd1a45'
+            'karla',
+            'alexrreva@gmail.com',
+            'f8e25bc0dc1e21e565152c0baff799f2a7979362'
         );
 
         $result_data = array();
 
         $lead = $amo->lead;
-
+        $lead->debug(true);
+        $lead['name'] = 'Сделка #' . $data['lead_id'];
         $lead['status_id'] = $data['lead_status_id'];
         $lead['price'] = $data['lead_sale'] ? (int)$data['lead_sale'] : 0;
 
-        if (!($data['lead_method'] && empty($data['crm_lead_id']) ) ) {
+        if (!empty($data['crm_lead_id']) )  {
 
-            $responce_lead = $lead->apiUpdate((int)$data['crm_lead_id'], $data['updated_at']);
+            $responce_l = $lead->apiUpdate((int)$data['crm_lead_id'], 'now');
+            $responce_lead = (int)$data['crm_lead_id'];
 
         } else {
 
-            $lead['name'] = 'Сделка #' . $data['lead_id'];
-            $lead['created_by'] = 0;
-            $lead['date_create'] = strtotime($data['created_at']);
+            $lead['responsible_user_id'] = 0;
+            $lead['date_create'] = $data['date_create'];
             $lead['tags'] = $data['lead_utm_source'] ? $data['lead_utm_source'] : $data['lead_name'];
             
-            $lead->addCustomField(65499, $data['lead_id']);
+            $lead->addCustomField(471125, $data['lead_id']);
 
             if ($data['lead_utm']) {
 
-                $lead->addCustomField(65443, $data['lead_utm_source']);
-                $lead->addCustomField(65447, $data['lead_utm_campaign']);
-                $lead->addCustomField(65449, $data['lead_utm_medium']);
-                $lead->addCustomField(65453, $data['lead_utm_content']);
-                $lead->addCustomField(65457, $data['lead_utm_term']);
+                $lead->addCustomField(460415, $data['lead_utm_source']);
+                $lead->addCustomField(460417, $data['lead_utm_campaign']);
+                $lead->addCustomField(460419, $data['lead_utm_medium']);
+                $lead->addCustomField(460421, $data['lead_utm_content']);
+                $lead->addCustomField(460423, $data['lead_utm_term']);
 
-                $lead->addCustomField(65511, $data['lead_utm']);
+                $lead->addCustomField(460431, $data['lead_utm']);
             }
 
             $responce_lead = $lead->apiAdd();
@@ -157,42 +172,43 @@ function sendAmo($data = false) {
         }
 
         $contact = $amo->contact;
+        $contact->debug(true);
 
+        $contact['name'] = $data['contacts_name'];
         $contact['linked_leads_id'] = $responce_lead;
 
         if ($data['contacts_phone']) {
 
-            $contact->addCustomField(60163, [[$data['contacts_phone'], 84909]]);
+            $contact->addCustomField(266644, [[$data['contacts_phone'], 'WORK']]);
 
         }
 
         if ($data['crm_contacts_id']) {
 
-            $contact['updated_at'] = $data['updated_at']; // date('l dS of F Y h:i:s A', $data['updated_at']);
+            $contact['last_modified'] = $data['last_modified'];
 
-            $responce_contact = $contact->apiUpdate((int)$data['crm_contacts_id'], $data['updated_at']);
-            $result_data['crm_member_id'] = '';
+            $responce_c = $contact->apiUpdate((int)$data['crm_contacts_id'], $data['last_modified']);
+            $responce_contact = (int)$data['crm_contacts_id'];
         } else {
 
-            $contact['name'] = $data['contacts_name'];
-            $contact['date_create'] = strtotime($data['created_at']);
-            $contact['created_by'] = 0;
+            $contact['date_create'] = $data['date_create'];
         
-            $contact->addCustomField(60165, [[$data['contacts_email'], 84919]]);
+            $responce_c = $contact->addCustomField(266646, [[$data['contacts_email'], 'WORK']]);
 
             $responce_contact = $contact->apiAdd();
 
-            $result_data['crm_member_id'] = $responce_contact;
+            
 
         }
 
         
         $result_data['crm_lead_id'] = $responce_lead;
+        $result_data['crm_member_id'] = $responce_contact;
 
         $result = array(
             "ok" => true,
             "data" => $result_data,
-            "msg" => 'ok',
+            "msg" => $responce_l,
         );
 
     }
@@ -223,7 +239,7 @@ function api_funnels_crm_lead_send_all() {
     if ($resultQuery["ok"]) {
             $list_lead = array();
             foreach ($resultQuery["data"] as $item) {
-                $resultFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$row['funnel_forms_id']);
+                $resultFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$item['funnel_forms_id']);
                 if ($resultFunnelForms['ok']) {
                     $item['funnel_forms_data'] = $resultFunnelForms['data'];
                 }
@@ -283,8 +299,8 @@ function api_funnels_crm_lead_send($row) {
 
         'crm_lead_id' => $row['crm_lead_id'],
 
-        'created_at' => $row['date'],
-        'updated_at' => $row['updated'],
+        'date_create' => $row['date'],
+        'last_modified' => $row['updated'],
 
     );
 

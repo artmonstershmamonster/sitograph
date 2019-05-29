@@ -146,7 +146,35 @@
 	
 	<table cellpadding="0" cellspacing="0" width="100%" height="100%">
 	<tr valign="top">
-		<td width="24" style="background: url({$contentUrl}/images/sitograph/menu_left_bg.gif) repeat-y;">&nbsp;</td>
+
+<td style="padding:15px; width: 100%;">
+
+{if $message_error}
+<div class="alert alert-danger">
+{$message_error}
+</div>
+{/if}
+
+{if $message_success}
+<div class="alert alert-success">
+{$message_success}
+</div>
+{/if}
+
+
+{if $admin_page_template}
+{assign var="filename" value="`$themePath`/sitograph/section/`$admin_page_template`"}
+{include file="$filename"}
+{/if}
+
+
+</td>
+	</tr>
+	<tr>
+		<td bgcolor="#f9f9f9" height="63" colspan="2" class="footer_bg"></td>
+		<td bgcolor="#fff" height="63" colspan="2"></td>
+	</tr>
+	<tr>
 		<td width="220" bgcolor="#E8E8E8">
 		
 		<table cellpadding="0" cellspacing="0" width="220" height="100%">
@@ -211,45 +239,8 @@
 </table>
 
 </td>
-<td width="15" style="padding-top: 10px;"></td>
-<td width="auto" style="padding:15px;">
+</tr>
 
-{if $message_error}
-<div class="alert alert-danger">
-{$message_error}
-</div>
-{/if}
-
-{if $message_success}
-<div class="alert alert-success">
-{$message_success}
-</div>
-{/if}
-
-
-{if $admin_page_template}
-{assign var="filename" value="`$themePath`/sitograph/section/`$admin_page_template`"}
-{include file="$filename"}
-{/if}
-
-
-</td>
-	</tr>
-	<tr>
-		<td bgcolor="#f9f9f9" height="63" colspan="2" class="footer_bg"></td>
-		<td bgcolor="#fff" height="63" colspan="2"></td>
-	</tr>
-	</tr>
-	<tr>
-		<td bgcolor="#333746" height="81"></td>
-		<td bgcolor="#333746" valign="top" colspan="3">
-			<div>
-			<img src="{$contentUrl}/images/sitograph/sitograph-logo-white-{if $lang == "ru" || $lang == "ua"}ru{else}en{/if}.png" style="height:80px;"/>
-
-				<h4 style="display: inline-block;">{$admin_title}</h4>
-			</div>
-		</td>
-	</tr>
 	</table>
 	
 	</td>

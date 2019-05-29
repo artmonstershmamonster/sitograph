@@ -1,4 +1,15 @@
-<form class="form-horizontal" id="user_login_form" method="POST" action="{$lang_url}/login/">
+<form class="form-signin" id="user_login_form" method="POST" action="{$lang_url}/login/">
+  <img class="mb-4" src="/docs/4.3/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+  <h1 class="h3 mb-3 font-weight-normal">Личный кабинет</h1>
+  <label for="inputEmail" class="sr-only">Email address</label>
+  <input name="email" type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+  <label for="inputPassword" class="sr-only">Password</label>
+  <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+  <button type="submit" class="btn btn-lg btn-primary btn-block" name="doLogin" value="1">{_t("users.form.sign_in")}</button>
+</form>
+
+
+<form class="form-horizontal" id="user_login_form" method="POST" action="{$lang_url}/login/" hidden>
   <div class="form-group">
     <label for="inputEmail" class="col-sm-2 control-label">{_t("users.form.email")}</label>
     <div class="col-sm-10">
@@ -32,5 +43,3 @@
     </div>
   </div>
 </form>
-
-<div style="height:100px;"></div>

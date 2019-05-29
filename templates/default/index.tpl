@@ -1,6 +1,6 @@
 {include file="$themePath/widget/header.tpl"}
 
-<div class="container top-menu">
+<div class="container top-menu" hidden>
 	<div class="row">
 		{include file="$themePath/widget/menu-top.tpl"}
 	</div>

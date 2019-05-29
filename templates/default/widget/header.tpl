@@ -11,9 +11,9 @@
 </head>
 <body>
 
-<div class="container header">
+<div class="container header" hidden>
     <div class="row">
-		<div class="col-sm-6">
+		<div class="col-sm-6" hidden>
 			{if $search}
 			<form action="{$lang_url}{$search.baseUrl}?search" method="post" class="form-inline">
 				<div class="form-group">
@@ -23,7 +23,7 @@
 			</form>
 			{/if}
 		</div>
-    	<div class="col-sm-6">
+    	<div class="col-sm-6" hidden>
 	        <div class="row">
 	        <div class="col-xs-4">
 	    <p>
@@ -49,7 +49,7 @@
 {/if} 
 	     	</div>
 	     	
-	        <div class="col-xs-8">
+	        <div class="col-xs-8" hidden> 
 	     	{include file="$themePath/widget/menu-user.tpl"}
 	     	</div>
 	     	
