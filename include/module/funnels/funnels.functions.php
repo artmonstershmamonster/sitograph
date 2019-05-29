@@ -138,7 +138,7 @@ function sendAmo($data = false) {
         $result_data = array();
 
         $lead = $amo->lead;
-        $lead->debug(true);
+        //$lead->debug(true);
         $lead['name'] = 'Сделка #' . $data['lead_id'];
         $lead['status_id'] = $data['lead_status_id'];
         $lead['price'] = $data['lead_sale'] ? (int)$data['lead_sale'] : 0;
@@ -172,7 +172,7 @@ function sendAmo($data = false) {
         }
 
         $contact = $amo->contact;
-        $contact->debug(true);
+        //$contact->debug(true);
 
         $contact['name'] = $data['contacts_name'];
         $contact['linked_leads_id'] = $responce_lead;
