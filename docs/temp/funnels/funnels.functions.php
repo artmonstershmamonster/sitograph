@@ -35,24 +35,6 @@ function api_funnels_lead_add($row, $options = array()) {
         $row["funnel_forms_id"] = (int)$row["funnel_forms_id"];
     }
 
-    if (empty($row["funnels_id"])) {
-        $result["msg"] = _t("msg.funnels.funnel_forms_id_exists");
-        return $result;
-    } else {
-        $row["funnels_id"] = (int)$row["funnels_id"];
-    }
-
-    $resultCheck = db_get(
-        TABLE_FUNNEL_LEADS,
-        " `member_email` = '".db_escape($row["member_email"]).
-        "' AND  `funnel_forms_id` = '".$row["funnel_forms_id"]."'"
-    );
-
-    if ($resultCheck["ok"] && !empty($resultCheck["data"])) {
-        $result["msg"] = _t("msg.users.email_exists");
-        return $result;
-    }
-
     if (!empty($row["utm"])) {
         $utm_arr = json_decode($row["utm"], true);
 
@@ -90,44 +72,34 @@ function api_funnels_lead_add($row, $options = array()) {
         $row["crm_member_id"] = $userResult["crm_id"];
     }
 
-    $resultCheckFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$row['funnel_forms_id']);
+    $resultCheck = db_get(
+        TABLE_FUNNEL_LEADS,
+        " `member_email` = '".db_escape($row["member_email"]).
+        "' AND  `funnel_forms_id` = '".$row["funnel_forms_id"]."'"
+    );
 
-    if (!$resultCheckFunnelForms["ok"] && empty($resultCheckFunnelForms["data"])) {
-        $result["msg"] = "ERROR FORMS";
+    if ($resultCheck["ok"] && !empty($resultCheck["data"])) {
+        $result["msg"] = _t("msg.users.email_exists");
         return $result;
-    } else {
-        $crm_lead_method = $resultCheckFunnelForms["data"]["crm_lead_method"];
-    }    
-
-    
-
-    if (!$crm_lead_method) {
-
-        $rowUpd = array();
-        
-        $resultQuery = db_get_list_all(
-            TABLE_FUNNEL_LEADS,
-            " `member_email` = '".db_escape($row["member_email"])."' and `deleted` = 0 and `funnels_id` = '".db_escape($row["funnels_id"])."'",
-            "`date` asc", 
-            "10000",
-            ""
-        );
-
-        foreach ($resultQuery["data"] as $item) {
-            if ( !empty( $item['crm_lead_id'] ) ) {
-                $row["crm_lead_id"] = (int)$item['crm_lead_id'];
-            } 
-
-            if ($item["status"] === "0") {
-                $rowUpd = array(
-                    "id" => $item['id'],
-                );
-            }
-        }
-
-
     }
 
+    $resultCheckLeads = db_get(
+        TABLE_FUNNEL_LEADS,
+        " `member_email` = '".db_escape($row["member_email"]).
+        "' AND  `funnels_id` = '".$row["funnels_id"]."' AND  `published` = '1'"
+    );
+
+    if ($resultCheckLeads["ok"] && !empty($resultCheckLeads["data"]["crm_lead_id"])) {
+        $row["crm_lead_id"] = (int)$resultCheckLeads["data"]["crm_lead_id"];
+    } 
+
+    if (empty($resultCheckLeads["data"]["crm_lead_id"]) && $resultCheckLeads["data"]["status"] == "0" ) {
+        $rowUpd = array(
+                "id" => $resultCheckLeads["data"]['id'],
+                "published" => 0,
+            );
+        $resultUpdateLead = db_update_row(TABLE_FUNNEL_LEADS, $rowUpd);
+    }
 
     if (empty($row["published"])) {
         $row["published"] = 1;
@@ -137,18 +109,9 @@ function api_funnels_lead_add($row, $options = array()) {
 
     $result = db_add(TABLE_FUNNEL_LEADS, $row, "*");
 
-
-
     if ($result["ok"]) {
 
-        if (!empty($rowUpd)) {
-            $rowUpd["published"] = 0;
-            $rowUpd["status"] = 1;
-        }
-
-        $rowUpd["status_info"] = $result["data"]["id"];
-        $resultUpdateLead = db_update_row(TABLE_FUNNEL_LEADS, $rowUpd);
-
+        $resultCheckFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$row['funnel_forms_id']);
         if ($resultCheckFunnelForms['ok']) {
             $result["url"] = $resultCheckFunnelForms['data']['response_page_link'];
         }
@@ -184,7 +147,7 @@ function sendAmo($data = false) {
 
         $lead = $amo->lead;
         //$lead->debug(true);
-        
+        $lead['name'] = 'Сделка #' . $data['lead_id'];
         $lead['status_id'] = $data['lead_status_id'];
         $lead['price'] = $data['lead_sale'] ? (int)$data['lead_sale'] : 0;
 
@@ -194,7 +157,7 @@ function sendAmo($data = false) {
             $responce_lead = (int)$data['crm_lead_id'];
 
         } else {
-            $lead['name'] = 'Сделка #' . $data['lead_id'];
+
             $lead['responsible_user_id'] = 0;
             $lead['date_create'] = $data['date_create'];
             $lead['tags'] = $data['lead_utm_source'] ? $data['lead_utm_source'] : $data['lead_name'];
@@ -285,23 +248,15 @@ function api_funnels_crm_lead_send_all() {
     if ($resultQuery["ok"]) {
             $list_lead = array();
             foreach ($resultQuery["data"] as $item) {
-                //$resultFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$item['funnel_forms_id']);
-                //if ($resultFunnelForms['ok']) {
-                    //$item['funnel_forms_data'] = $resultFunnelForms['data'];
-                //}
-                //if ($item['funnel_forms_data']['crm_lead_method']) {
-                    //$list_lead[] = $item;
-                //}
-                $result = api_funnels_crm_lead_send($item);
-                    
-                    $result['data']['lead_id'] = $item['id'];
-                    $result['data']['member_user_id'] = $item['member_user_id'];
-
-                    $result = api_funnels_lead_update($result);
-
+                $resultFunnelForms = db_get(TABLE_FUNNEL_FORMS,' `id` = '.$item['funnel_forms_id']);
+                if ($resultFunnelForms['ok']) {
+                    $item['funnel_forms_data'] = $resultFunnelForms['data'];
+                }
+                if ($item['funnel_forms_data']['crm_lead_method']) {
+                    $list_lead[] = $item;
+                }
             }
-            
-            /*foreach ($list_lead as $item) {
+            foreach ($list_lead as $item) {
                 if ($item['status'] === "0") {
                     $result = api_funnels_crm_lead_send($item);
                     
@@ -311,12 +266,11 @@ function api_funnels_crm_lead_send_all() {
                     $result = api_funnels_lead_update($result);
                 }
             }
-            */
             
         }
 
 
-    return $resultQuery;
+    return $result;
 }
 
 function api_funnels_lead_update($row) {
